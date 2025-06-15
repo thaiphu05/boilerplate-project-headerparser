@@ -20,8 +20,20 @@ app.get('/', function (req, res) {
 });
 
 // your first API endpoint...
-app.get('/api/hello', function (req, res) {
-  res.json({ greeting: 'hello API' });
+app.get('/api/whoami', function (req, res) {
+  const ipadress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const language = req.headers['accept-language']  ;
+  const software = req.headers['user-agent'];
+  if (!ipadress) {
+    return res.status(400).json({ error: 'IP address not found' });
+  }
+  if (!language) {
+    return res.status(400).json({ error: 'Language not found' });
+  }
+  if (!software) {
+    return res.status(400).json({ error: 'Software not found' });
+  }
+  res.json({ ipadress : ipadress, language: language, software: software });
 });
 
 // listen for requests :)
