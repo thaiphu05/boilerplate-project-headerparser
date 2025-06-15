@@ -24,7 +24,7 @@ app.get('/', function (req, res) {
 
 // your first API endpoint...
 app.get('/api/whoami', function (req, res) {
-  const ipadress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  let ipadress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   if (ipadress.includes(",")) {
     ipadress = ipadress.split(",")[0].trim();
   }
