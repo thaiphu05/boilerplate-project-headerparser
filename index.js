@@ -5,7 +5,10 @@
 require('dotenv').config();
 var express = require('express');
 var app = express();
-
+function IPv4to6(ip) {
+  // Convert IPv4 to IPv6 format
+  return '::ffff:' + ip;
+} 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 // so that your API is remotely testable by FCC
 var cors = require('cors');
@@ -33,7 +36,7 @@ app.get('/api/whoami', function (req, res) {
   if (!software) {
     return res.status(400).json({ error: 'Software not found' });
   }
-  res.json({ ipadress : ipadress, language: language, software: software });
+  res.json({ ipadress : IPv4to6(ipadress), language: language, software: software });
 });
 
 // listen for requests :)
