@@ -1,47 +1,49 @@
 // index.js
-// where your node app starts
 
-// init project
 require('dotenv').config();
 var express = require('express');
 var app = express();
-function IPv4to6(ip) {
-  // Convert IPv4 to IPv6 format
-  return '::ffff:' + ip;
-} 
-// enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-// so that your API is remotely testable by FCC
 var cors = require('cors');
-app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 204
 
-// http://expressjs.com/en/starter/static-files.html
+// Hàm chuyển IPv4 thành IPv6 dạng ::ffff:x.x.x.x
+function IPv4to6(ip) {
+  if (!ip) return '';
+  if (ip.startsWith('::ffff:')) return ip;
+  return '::ffff:' + ip;
+}
+
+app.use(cors({ optionsSuccessStatus: 200 }));
 app.use(express.static('public'));
 
-// http://expressjs.com/en/starter/basic-routing.html
 app.get('/', function (req, res) {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-// your first API endpoint...
 app.get('/api/whoami', function (req, res) {
-  let ipadress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  if (ipadress.includes(",")) {
-    ipadress = ipadress.split(",")[0].trim();
+  let ipaddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+  
+  // Nếu có nhiều IP trong chuỗi x-forwarded-for, lấy cái đầu tiên
+  if (ipaddress.includes(',')) {
+    ipaddress = ipaddress.split(',')[0].trim();
   }
-  const software = req.headers['user-agent'];
-  if (!ipadress) {
-    return res.status(400).json({ error: 'IP address not found' });
+
+  // Nếu IP đã ở dạng ::ffff:x.x.x.x thì không chuyển lại nữa
+  ipaddress = IPv4to6(ipaddress.replace('::ffff:', ''));
+
+  const language = req.headers['accept-language'] || '';
+  const software = req.headers['user-agent'] || '';
+
+  if (!ipaddress || !language || !software) {
+    return res.status(400).json({ error: 'Missing headers' });
   }
-  if (!language) {
-    return res.status(400).json({ error: 'Language not found' });
-  }
-  if (!software) {
-    return res.status(400).json({ error: 'Software not found' });
-  }
-  res.json({ ipadress : IPv4to6(ipadress), language: language, software: software });
+
+  res.json({
+    ipaddress: ipaddress,
+    language: language,
+    software: software
+  });
 });
 
-// listen for requests :)
 var listener = app.listen(process.env.PORT || 3000, function () {
   console.log('Your app is listening on port ' + listener.address().port);
 });
